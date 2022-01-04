@@ -5,9 +5,9 @@ import {
   Button,
   TextField,
   Box,
-  Typography,
+  Container,
 } from "@mui/material"
-import { createContext, useContext, useEffect, useState } from "react"
+import {createContext, useContext, useState} from "react"
 
 // const rand = (min, max) => Math.random() * (max - min) + min
 
@@ -20,8 +20,6 @@ import { createContext, useContext, useEffect, useState } from "react"
 
 //   return v
 // }
-
-const w = 300
 
 const Context = createContext()
 
@@ -48,46 +46,33 @@ const letters = [
 ]
 
 const Display = () => {
-  const [expression, setExpression, error, setError] = useContext(Context)
+  const [expression, setExpression, error] = useContext(Context)
 
   return (
-    <Box
-      sx={{
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
-      <TextField
-        sx={{ width: w }}
-        onInput={(ev) => {
-          if (!ev.target.value) return setExpression("")
+    <TextField
+      sx={{gridArea: "output"}}
+      onInput={(ev) => {
+        if (!ev.target.value) return setExpression("")
 
-          if (letters.includes(ev.target.value.slice(-1)))
-            setExpression(ev.target.value)
-        }}
-        inputmode="numeric"
-        value={expression}
-        error={error.trim()}
-        placeholder="Введите здесь"
-        helperText={error}
-      />
-    </Box>
+        if (letters.includes(ev.target.value.slice(-1)))
+          setExpression(ev.target.value)
+      }}
+      inputMode="numeric"
+      value={expression}
+      error={!!error.trim()}
+      placeholder="Введите здесь"
+      helperText={error}
+    />
   )
 }
 
-const CalcButton = ({ letter }) => {
-  const [
-    expression,
-    setExpression,
-    error,
-    setError,
-    shouldDelete,
-    setShouldDelete,
-  ] = useContext(Context)
+const CalcButton = ({letter}) => {
+  const [, setExpression, error, setError, shouldDelete, setShouldDelete] =
+    useContext(Context)
 
   return (
     <Button
-      sx={{ width: w / 3 }}
+      sx={{fontSize: 20, gridArea: "b" + letters.indexOf(letter)}}
       onClick={() => {
         if (error) setError(" ")
 
@@ -102,19 +87,16 @@ const CalcButton = ({ letter }) => {
             setExpression((p) => {
               try {
                 if (p) {
-                  let result = String(eval(p))
+                  let result = String(eval(p).toFixed(4))
                   if (result != "Infinity") {
                     setShouldDelete(true)
                     return result
                   }
-
-                  setError("Неверное выражение")
-                  return p
                 }
-              } catch {
-                setError("Неверное выражение")
-                return p
-              }
+              } catch {}
+
+              setError("Неверное выражение")
+              return p
             })
             break
           default:
@@ -147,36 +129,42 @@ const Comp = () => {
         setShouldDelete,
       ]}
     >
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          // background: "#999",
-        }}
+      <Container
+        maxWidth="xs"
+        sx={
+          {
+            // display: "flex",
+            // alignItems: "center",
+            // justifyContent: "center",
+          }
+        }
       >
-        <Box>
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateRows: "repeat(5, 1fr)",
+            gridTemplateColumns: "repeat(5, 1fr)",
+            gridTemplateAreas: `
+            "output output output output output"
+            "b10 b11 b12 b13 b14"
+            "b15 b17 b18 b16 b16"
+            "b0  b1  b2  b3  b4"
+            "b5  b6  b7  b8  b9"
+          `,
+          }}
+        >
           <Display />
-          <Box
-            sx={{
-              display: "flex",
-              flexWrap: "wrap",
-              width: w,
-              // background: "#999",
-            }}
-          >
-            {letters.map((letter) => (
-              <CalcButton key={letter} letter={letter} />
-            ))}
-          </Box>
+          {letters.map((letter) => (
+            <CalcButton key={letter} letter={letter} />
+          ))}
         </Box>
-      </Box>
+      </Container>
     </Context.Provider>
   )
 }
 
 const Page = () => (
-  <ThemeProvider theme={createTheme({ palette: { mode: "dark" } })}>
+  <ThemeProvider theme={createTheme({palette: {mode: "dark"}})}>
     <CssBaseline />
     <Comp />
   </ThemeProvider>
